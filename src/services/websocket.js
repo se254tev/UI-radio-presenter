@@ -1,16 +1,19 @@
-const getWebSocketUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:10000";
-  const url = new URL(apiUrl.replace(/^http/, "ws"));
-  url.pathname = "/ws/radio";
-  return url.toString();
-};
+import { WS_URL } from "./config";
 
 export function createWebSocket({ onOpen, onClose, onMessage, onError }) {
   let socket = null;
   let reconnectTimeout = null;
   let reconnectAttempts = 0;
   const maxAttempts = 10;
-  const url = getWebSocketUrl();
+  const reconnectDelayMs = 4000;
+  const url = WS_URL;
+
+  const scheduleReconnect = () => {
+    if (reconnectAttempts < maxAttempts) {
+      reconnectAttempts += 1;
+      reconnectTimeout = window.setTimeout(connect, reconnectDelayMs);
+    }
+  };
 
   const connect = () => {
     socket = new WebSocket(url);
@@ -29,17 +32,16 @@ export function createWebSocket({ onOpen, onClose, onMessage, onError }) {
       }
     };
 
-    socket.onclose = () => {
-      onClose?.();
-      if (reconnectAttempts < maxAttempts) {
-        reconnectAttempts += 1;
-        reconnectTimeout = window.setTimeout(connect, 1000 * reconnectAttempts);
-      }
+    socket.onclose = (event) => {
+      onClose?.(event);
+      scheduleReconnect();
     };
 
     socket.onerror = (event) => {
       onError?.(event);
-      socket.close();
+      if (socket && socket.readyState !== WebSocket.CLOSING && socket.readyState !== WebSocket.CLOSED) {
+        socket.close();
+      }
     };
   };
 

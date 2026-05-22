@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { HTTP_API } from "../services/config";
 
 export function useRadioStream() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -6,11 +7,9 @@ export function useRadioStream() {
   const [streamUrl, setStreamUrl] = useState(null);
   const audioRef = useRef(null);
 
-  const apiBase = import.meta.env.VITE_API_URL || "http://localhost:10000";
-
   useEffect(() => {
-    setStreamUrl(`${apiBase}/stream/live.m3u8`);
-  }, [apiBase]);
+    setStreamUrl(`${HTTP_API}/stream/live.m3u8`);
+  }, []);
 
   const togglePlay = async () => {
     if (!audioRef.current) {

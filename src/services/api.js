@@ -1,4 +1,6 @@
-const apiBase = import.meta.env.VITE_API_URL || "http://localhost:10000";
+import { HTTP_API } from "./config";
+
+const apiBase = HTTP_API;
 
 async function fetchJson(path, options = {}) {
   const response = await fetch(`${apiBase}${path}`, {
